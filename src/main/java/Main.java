@@ -1,5 +1,3 @@
-
-
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
@@ -13,14 +11,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Main {
-	
+
 	private static String fileFrom, fileTo;
 	private static final String ext = "jpg";
 	private static int TYPE = BufferedImage.TYPE_INT_RGB;
 
 	public static void main(String[] args) {
 		Date date = new Date();
-		
+
 		JSONObject sizes = null;
 		if (args.length < 3) {
 			System.err.println("Give me at least 3 arguments:\n"
@@ -33,15 +31,15 @@ public class Main {
 		System.out.println(String.format("[img-jar]\nfrom:\n\t\"%s\"\nto:\n\t\"%s\"\nwith:\n\t%s...", args[0], args[1], args[2]));
 		fileFrom = args[0];
 		fileTo = args[1];
-	
+
 		try {
-			JSONObject json = new JSONObject(args[2]);
+			JSONObject crop = new JSONObject(args[2]);
 			if(args.length == 4){
 				sizes = new JSONObject(args[3]);
 			}
 			BufferedImage img = ImageIO.read(new File(fileFrom));
 			BufferedImage nImg = cropImage(img,
-					new Rectangle(json.getInt("x"), json.getInt("y"), json.getInt("w"), json.getInt("h")));
+					new Rectangle(crop.getInt("x"), crop.getInt("y"), crop.getInt("w"), crop.getInt("h")));
 
 			saveImage(nImg, "original");
 			if(sizes != null){
@@ -70,7 +68,7 @@ public class Main {
 			System.err.println("Error while opening the image file:\n" + ioe.getMessage());
 		}
 	}
-	
+
 	private static void saveImage(BufferedImage nImg, String caption){
 		try {
 			String novo = fileTo + "-" + caption + "." + ext;
@@ -100,8 +98,8 @@ public class Main {
 
 		return resizedImage;
 	}
-	
-	
+
+
 	private static BufferedImage resizeImage(BufferedImage originalImage, int bigSide) {
 		double IMG_WIDTH = originalImage.getWidth();
 		double IMG_HEIGHT = originalImage.getHeight();
@@ -111,7 +109,7 @@ public class Main {
 			IMG_HEIGHT = IMG_WIDTH/ratio;
 		}else{
 			IMG_HEIGHT = bigSide;
-			IMG_WIDTH = IMG_HEIGHT/ratio;
+			IMG_WIDTH = IMG_HEIGHT*ratio;
 		}
 		BufferedImage resizedImage = new BufferedImage((int)IMG_WIDTH, (int)IMG_HEIGHT, TYPE);
 		Graphics g = resizedImage.createGraphics();
