@@ -19,12 +19,14 @@ public class Main {
 	public static void main(String[] args) {
 		Date date = new Date();
 
-		JSONObject sizes = null;
+		JSONObject sizes = null, crop = null;
+		int maxSize = 960;
 		if (args.length < 3) {
 			System.err.println("Give me at least 3 arguments:\n"
-					+ "\timg_origin_path+name+extension -> 'C:\\images\\test.jpg'"
-					+ "\n\timg_destination_path+name -> 'C:\\images\\newImage'"
-					+ "\n\t{json_crop_configuration} -> '{x:0, y:0, w:100, h: 150}'"
+					+ "\timg_origin_path + name + extension 	-> 'C:\\images\\test.jpg'"
+					+ "\n\timg_destination_path + name 			-> 'C:\\images\\newImage'"
+					+ "\n\tmax_pixel_size (optional)			-> 960"
+					+ "\n\t{json_crop_configuration}(optional)	-> '{x:0, y:0, w:100, h: 150}'"
 					+ "\n\t{json_resizes_configurations}(optional) -> '{size20Pixels: 20, halfSize: 0.5}'");
 			return;
 		}
@@ -33,30 +35,33 @@ public class Main {
 		fileTo = args[1];
 
 		try {
-			JSONObject crop = new JSONObject(args[2]);
-			if(args.length == 4){
-				sizes = new JSONObject(args[3]);
-			}
+			if(args.length > 2 && !args[2].equals("null")) maxSize = Integer.valueOf(args[2]);
+			if(args.length > 3 && !args[3].equals("null")) crop = new JSONObject(args[3]);
+			if(args.length > 4 && !args[4].equals("null")) sizes = new JSONObject(args[4]);
+			
 			BufferedImage img = ImageIO.read(new File(fileFrom));
-			BufferedImage nImg = cropImage(img,
+			int biggerAxis = Math.max(img.getWidth(), img.getHeight());
+			if(biggerAxis > 1000) img = resizeImage(img, (int)maxSize);
+			if(crop != null)
+				img = cropImage(img,
 					new Rectangle(crop.getInt("x"), crop.getInt("y"), crop.getInt("w"), crop.getInt("h")));
 
-			saveImage(nImg, "original");
+			saveImage(img, "original");
 			if(sizes != null){
 				for(String key : sizes.keySet()){
 					Object obj = sizes.get(key);
 					if(obj instanceof String){
 						String s = sizes.getString(key);
 						if(s.contains("."))
-							saveImage(resizeImage(nImg, Double.valueOf(s)), key);
+							saveImage(resizeImage(img, Double.valueOf(s)), key);
 						else
-							saveImage(resizeImage(nImg, Integer.valueOf(s)), key);
+							saveImage(resizeImage(img, Integer.valueOf(s)), key);
 					}
 					if(obj instanceof Integer){
-						saveImage(resizeImage(nImg, sizes.getInt(key)), key);
+						saveImage(resizeImage(img, sizes.getInt(key)), key);
 					}
 					if(obj instanceof Double){
-						saveImage(resizeImage(nImg, sizes.getDouble(key)), key);
+						saveImage(resizeImage(img, sizes.getDouble(key)), key);
 					}
 				}
 			}
@@ -98,7 +103,6 @@ public class Main {
 
 		return resizedImage;
 	}
-
 
 	private static BufferedImage resizeImage(BufferedImage originalImage, int bigSide) {
 		double IMG_WIDTH = originalImage.getWidth();
