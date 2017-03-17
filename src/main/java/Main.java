@@ -40,12 +40,13 @@ public class Main {
 			if(args.length > 4 && !args[4].equals("null")) sizes = new JSONObject(args[4]);
 			
 			BufferedImage img = ImageIO.read(new File(fileFrom));
-			int biggerAxis = Math.max(img.getWidth(), img.getHeight());
-			if(biggerAxis > 1000) img = resizeImage(img, (int)maxSize);
+			
 			if(crop != null)
 				img = cropImage(img,
 					new Rectangle(crop.getInt("x"), crop.getInt("y"), crop.getInt("w"), crop.getInt("h")));
-
+			int biggerAxis = Math.max(img.getWidth(), img.getHeight());
+			img = resizeImage(img, (int)biggerAxis);
+			
 			saveImage(img, "original");
 			if(sizes != null){
 				for(String key : sizes.keySet()){
